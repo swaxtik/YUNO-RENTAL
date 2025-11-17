@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>YUNO RIDE – Scooties</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page">
+
+ <!-- ========== HEADER ========== -->
+<header class="site-header">
+  <div class="brand">
+    <!-- LOGO -->
+    <img
+      src="Untitled-1.jpg"
+      alt="YUNO RIDE logo"
+      class="brand-logo"
+    />
+    <div class="brand-text">
+      <span class="brand-title">YUNO RIDE Rentals</span>
+      <span class="brand-sub">Bikes • Scooties • Hassle-Free</span>
+    </div>
+  </div>
+  <nav class="nav">
+    <a href="#fleet">Fleet</a>
+    <a href="#booking">Book</a>
+  </nav>
+</header>
+
+  <main>
+    <!-- ========== HERO ========== -->
+    <section class="hero" id="top">
+      <div class="hero-inner">
+        <div>
+          <div class="hero-tagline">Daily • Weekly • Monthly</div>
+          <h1 class="hero-title">Pick your ride, Book your ride, start exploring.</h1>
+          <p class="hero-text">
+            Choose from commuter-friendly scooties. Simple slider, quick booking,
+            and all confirmations handled on WhatsApp.
+          </p>
+          <div class="hero-actions">
+            <a href="#booking" class="btn btn-primary">Book a ride</a>
+            <a href="#fleet" class="btn btn-ghost">View all vehicles</a>
+          </div>
+          <p class="hero-note">
+           We Love to hear from you.
+          </p>
+        </div>
+        <aside class="hero-card">
+          <h2>Why ride with YUNO RIDE?</h2>
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <div class="hero-stat-label">Average rating</div>
+              <div class="hero-stat-value">4.8 / 5</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-label">Daily rentals</div>
+              <div class="hero-stat-value">50+ rides</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-label">Pickup points</div>
+              <div class="hero-stat-value">Kundapura</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat-label">Support</div>
+              <div class="hero-stat-value">WhatsApp • 9am–7pm</div>
+            </div>
+          </div>
+          <p>
+            Valid driving license required. Helmets available on request. Fuel on actuals.
+          </p>
+        </aside>
+      </div>
+
+      <!-- HERO BANNER IMAGE -->
+      <div class="hero-banner">
+        <img
+          src="YUNO RENTAL BANNER.jpg"
+          alt="Scooter rentals with YUNO RIDE"
+          loading="lazy"
+        />
+      </div>
+    </section>
+
+    <!-- ========== FLEET (SLIDER) ========== -->
+    <section class="section fleet-section" id="fleet">
+      <div class="fleet-inner">
+        <div class="section-header">
+          <h2>Our fleet</h2>
+          <p>
+            Swipe through our scooties. Hurry, book it before they're gone!
+          </p>
+        </div>
+
+        <div class="fleet-toolbar">
+          <div class="filter-group" id="typeFilterGroup">
+            <button class="filter-pill is-active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="bike">Bikes</button>
+            <button class="filter-pill" data-filter="scooty">Scooties</button>
+          </div>
+          <div class="fleet-hint">
+            Use the arrows to slide.
+          </div>
+        </div>
+
+        <div class="fleet-slider-wrapper">
+          <div class="vehicle-slider" id="vehicleSlider">
+
+            <!-- SCOOTY 1 -->
+            <article class="vehicle-card"
+                     data-id="fascino-125-black"
+                     data-type="scooty"
+                     data-available="true"
+                     data-day="700"
+                     data-week="4000">
+              <header class="vehicle-header">
+                <div>
+                  <h3 class="vehicle-name">Yamaha Fascino 125 (Black)</h3>
+                  <p class="vehicle-subtitle">125cc • Gearless • City-friendly</p>
+                </div>
+                <div class="vehicle-tags">
+                  <span class="vehicle-tag type-scooty">Scooty</span>
+                </div>
+              </header>
+
+              <div class="vehicle-image">
+                <img
+                  src="Metallic-Black-cd.webp"
+                  alt="Yamaha Fascino 125 Black"
+                  loading="lazy"
+                />
+              </div>
+
+              <p class="vehicle-price">
+                ₹700 / day
+                <span>₹4000 / week</span>
+              </p>
+              <p class="vehicle-desc">
+                Perfect for errands, short commutes, and light city rides. Easy to handle, great mileage.
+              </p>
+              <p class="vehicle-id">ID: fascino-125-black</p>
+              <footer class="vehicle-footer">
+                <button class="btn btn-outline js-book-from-card">Book this ride</button>
+              </footer>
+            </article>
+
+            <!-- SCOOTY 2 -->
+            <article class="vehicle-card"
+                     data-id="fascino-125-black"
+                     data-type="scooty"
+                     data-available="true"
+                     data-day="700"
+                     data-week="4000">
+              <header class="vehicle-header">
+                <div>
+                  <h3 class="vehicle-name">Yamaha Fascino 125 (Black)</h3>
+                  <p class="vehicle-subtitle">125cc • Gearless • Comfortable seat</p>
+                </div>
+                <div class="vehicle-tags">
+                  <span class="vehicle-tag type-scooty">Scooty</span>
+                </div>
+              </header>
+
+              <div class="vehicle-image">
+                <img
+                  src="Metallic-Black-cd.webp"
+                  alt="Yamaha Fascino 125 Black"
+                  loading="lazy"
+                />
+              </div>
+
+              <p class="vehicle-price">
+                ₹700 / day
+                <span>₹4000 / week</span>
+              </p>
+              <p class="vehicle-desc">
+                Comfortable, reliable, and easy to ride. Great for office and college runs.
+              </p>
+              <p class="vehicle-id">ID: fascino-125-black</p>
+              <footer class="vehicle-footer">
+                <button class="btn btn-outline js-book-from-card">Book this ride</button>
+              </footer>
+            </article>
+
+            <!-- SCOOTY 3 -->
+            <article class="vehicle-card"
+                     data-id="fascino-125-black"
+                     data-type="scooty"
+                     data-available="true"
+                     data-day="700"
+                     data-week="4000">
+              <header class="vehicle-header">
+                <div>
+                  <h3 class="vehicle-name">Yamaha Fascino 125 (Black)</h3>
+                  <p class="vehicle-subtitle">125cc • Gearless • Peppy ride</p>
+                </div>
+                <div class="vehicle-tags">
+                  <span class="vehicle-tag type-scooty">Scooty</span>
+                </div>
+              </header>
+
+              <div class="vehicle-image">
+                <img
+                  src="Metallic-Black-cd.webp"
+                  alt="Yamaha Fascino 125 Black"
+                  loading="lazy"
+                />
+              </div>
+
+              <p class="vehicle-price">
+                ₹700 / day
+                <span>₹4000 / week</span>
+              </p>
+              <p class="vehicle-desc">
+                Zippy performance with a stylish look, ideal for city traffic.
+              </p>
+              <p class="vehicle-id">ID: fascino-125-black</p>
+              <footer class="vehicle-footer">
+                <button class="btn btn-outline js-book-from-card">Book this ride</button>
+              </footer>
+            </article>
+
+            <!-- SCOOTY 4 -->
+            <article class="vehicle-card"
+                     data-id="fascino-125-black"
+                     data-type="scooty"
+                     data-available="true"
+                     data-day="700"
+                     data-week="4000">
+              <header class="vehicle-header">
+                <div>
+                  <h3 class="vehicle-name">Yamaha Fascino 125 (Black)</h3>
+                  <p class="vehicle-subtitle">125cc • Gearless • Fuel efficient</p>
+                </div>
+                <div class="vehicle-tags">
+                  <span class="vehicle-tag type-scooty">Scooty</span>
+                </div>
+              </header>
+
+              <div class="vehicle-image">
+                <img
+                  src="Metallic-Black-cd.webp"
+                  alt="Yamaha Fascino 125 Black"
+                  loading="lazy"
+                />
+              </div>
+
+              <p class="vehicle-price">
+                ₹700 / day
+                <span>₹4000 / week</span>
+              </p>
+              <p class="vehicle-desc">
+                Smooth engine and great mileage – easy on the pocket for longer use.
+              </p>
+              <p class="vehicle-id">ID: fascino-125-black</p>
+              <footer class="vehicle-footer">
+                <button class="btn btn-outline js-book-from-card">Book this ride</button>
+              </footer>
+            </article>
+
+            <!-- SCOOTY 5 -->
+            <article class="vehicle-card"
+                     data-id="fascino-125-black"
+                     data-type="scooty"
+                     data-available="true"
+                     data-day="700"
+                     data-week="4000">
+              <header class="vehicle-header">
+                <div>
+                  <h3 class="vehicle-name">Yamaha Fascino 125 (Black)</h3>
+                  <p class="vehicle-subtitle">125cc • Gearless • Premium finish</p>
+                </div>
+                <div class="vehicle-tags">
+                  <span class="vehicle-tag type-scooty">Scooty</span>
+                </div>
+              </header>
+
+              <div class="vehicle-image">
+                <img
+                  src="Metallic-Black-cd.webp"
+                  alt="Yamaha Fascino 125 Black"
+                  loading="lazy"
+                />
+              </div>
+
+              <p class="vehicle-price">
+                ₹700 / day
+                <span>₹4000 / week</span>
+              </p>
+              <p class="vehicle-desc">
+                Stand out with a matte finish and a smooth, comfortable ride.
+              </p>
+              <p class="vehicle-id">ID: fascino-125-black</p>
+              <footer class="vehicle-footer">
+                <button class="btn btn-outline js-book-from-card">Book this ride</button>
+              </footer>
+            </article>
+
+          </div> <!-- /vehicle-slider -->
+
+          <div class="slider-controls">
+            <button class="slider-btn" id="sliderPrev" aria-label="Previous vehicle">‹</button>
+            <button class="slider-btn" id="sliderNext" aria-label="Next vehicle">›</button>
+            <div class="slider-dots" id="sliderDots"></div>
+          </div>
+
+          <p class="fleet-empty" id="fleetEmpty">
+            No vehicles for this filter. Try another type.
+          </p>
+        </div> <!-- /fleet-slider-wrapper -->
+      </div> <!-- /fleet-inner -->
+    </section>
+
+    <!-- ========== BOOKING ========== -->
+    <section class="section booking-section" id="booking">
+      <div class="booking-inner">
+        <div class="section-header">
+          <h2>Book your ride</h2>
+          <p>
+            Fill in your details and we will connect you soon within 1min.
+          </p>
+        </div>
+
+        <div class="form-card">
+          <form id="bookingForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fullName">Full name</label>
+                <input type="text" id="fullName" name="fullName" placeholder="Your name" required />
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone number</label>
+                <input type="tel" id="phone" name="phone" placeholder="Your mobile number" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="vehicleSelect">Vehicle</label>
+                <select id="vehicleSelect" name="vehicle" required>
+                  <!-- options will be filled from the cards by JS -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="pickupDate">Pickup date</label>
+                <input type="date" id="pickupDate" name="pickupDate" required />
+              </div>
+              <div class="form-group">
+                <label for="returnDate">Return date</label>
+                <input type="date" id="returnDate" name="returnDate" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pickupTime">Pickup time</label>
+                <input type="time" id="pickupTime" name="pickupTime" />
+              </div>
+              <div class="form-group">
+                <label for="notes">Notes (optional)</label>
+                <textarea id="notes" name="notes" placeholder="Any extra info, pickup location, luggage, etc."></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full">
+              Open WhatsApp to confirm
+            </button>
+            <div id="bookingMessage" class="form-message"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== CONTACT / INFO ========== -->
+    <section class="section" id="contact">
+      <div class="booking-inner">
+        <div class="section-header">
+          <h2>Contact & timings</h2>
+          <p>
+            WhatsApp us for availability, custom plans, or group bookings.
+            All bookings are subject to document verification and standard terms.
+          </p>
+        </div>
+        <p style="font-size:0.9rem;color:#4b5563;margin-bottom:0.5rem;">
+          WhatsApp: <strong>+91 89518 49454</strong><br/>
+          Hours: 7:00 AM – 10:00 PM<br/>
+          Pickup: Kundapura
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    © <span id="yearSpan"></span> YUNO RIDE Rentals. All rights reserved.
+  </footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

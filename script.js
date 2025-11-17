@@ -1,0 +1,362 @@
+// ========== CONFIG ==========
+const WHATSAPP_NUMBER = "918951849454"; // +91 89518 49454
+
+// ========== UTIL ==========
+
+function setYear() {
+  const span = document.getElementById("yearSpan");
+  if (span) span.textContent = new Date().getFullYear();
+}
+
+function setupDateLimits() {
+  const pickupInput = document.getElementById("pickupDate");
+  const returnInput = document.getElementById("returnDate");
+  if (!pickupInput || !returnInput) return;
+
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+
+  pickupInput.min = todayStr;
+  returnInput.min = todayStr;
+
+  pickupInput.addEventListener("change", () => {
+    if (pickupInput.value) {
+      returnInput.min = pickupInput.value;
+    } else {
+      returnInput.min = todayStr;
+    }
+  });
+}
+
+// ========== FLEET SLIDER & FILTERS ==========
+
+let allCards = [];
+let currentIndex = 0;
+let currentFilter = "all";
+
+function initFleet() {
+  const slider = document.getElementById("vehicleSlider");
+  if (!slider) return;
+
+  allCards = Array.from(slider.querySelectorAll(".vehicle-card"));
+  if (allCards.length === 0) return;
+
+  setupFilterButtons();
+  applyFilter(currentFilter);
+  updateSliderClasses();
+  buildDots();
+  attachCardButtons();
+}
+
+function getVisibleCards() {
+  return allCards.filter(
+    (card) => !card.classList.contains("is-filter-hidden")
+  );
+}
+
+function applyFilter(type) {
+  currentFilter = type;
+  const emptyEl = document.getElementById("fleetEmpty");
+
+  allCards.forEach((card) => {
+    const cardType = card.getAttribute("data-type");
+    if (type === "all" || cardType === type) {
+      card.classList.remove("is-filter-hidden");
+    } else {
+      card.classList.add("is-filter-hidden");
+    }
+  });
+
+  const visible = getVisibleCards();
+  if (visible.length === 0) {
+    if (emptyEl) emptyEl.classList.add("is-visible");
+  } else if (emptyEl) {
+    emptyEl.classList.remove("is-visible");
+  }
+
+  currentIndex = 0;
+  updateSliderClasses();
+  updateDots();
+}
+
+function updateSliderClasses() {
+  const visible = getVisibleCards();
+  if (visible.length === 0) return;
+
+  if (currentIndex < 0) currentIndex = visible.length - 1;
+  if (currentIndex >= visible.length) currentIndex = 0;
+
+  allCards.forEach((card) => {
+    card.classList.remove("is-active", "is-left", "is-right", "is-hidden");
+  });
+
+  const activeCard = visible[currentIndex];
+  activeCard.classList.add("is-active");
+
+  const leftIndex = (currentIndex - 1 + visible.length) % visible.length;
+  const rightIndex = (currentIndex + 1) % visible.length;
+
+  if (visible.length > 1) {
+    visible[leftIndex].classList.add("is-left");
+    visible[rightIndex].classList.add("is-right");
+  }
+
+  visible.forEach((card, i) => {
+    if (i !== currentIndex && i !== leftIndex && i !== rightIndex) {
+      card.classList.add("is-hidden");
+    }
+  });
+
+  const activeId = activeCard.getAttribute("data-id");
+  const select = document.getElementById("vehicleSelect");
+  if (select && activeId && !select.dataset.userTouched) {
+    const hasOption = Array.from(select.options).some(
+      (opt) => opt.value === activeId
+    );
+    if (hasOption) {
+      select.value = activeId;
+    }
+  }
+
+  updateDots();
+}
+
+function sliderNext() {
+  const visible = getVisibleCards();
+  if (visible.length === 0) return;
+  currentIndex = (currentIndex + 1) % visible.length;
+  updateSliderClasses();
+}
+
+function sliderPrev() {
+  const visible = getVisibleCards();
+  if (visible.length === 0) return;
+  currentIndex = (currentIndex - 1 + visible.length) % visible.length;
+  updateSliderClasses();
+}
+
+function buildDots() {
+  const dotsContainer = document.getElementById("sliderDots");
+  if (!dotsContainer) return;
+  dotsContainer.innerHTML = "";
+
+  const visible = getVisibleCards();
+  visible.forEach((_card, idx) => {
+    const dot = document.createElement("span");
+    dot.className = "slider-dot" + (idx === currentIndex ? " is-active" : "");
+    dot.dataset.index = String(idx);
+    dot.addEventListener("click", () => {
+      currentIndex = idx;
+      updateSliderClasses();
+    });
+    dotsContainer.appendChild(dot);
+  });
+}
+
+function updateDots() {
+  const dotsContainer = document.getElementById("sliderDots");
+  if (!dotsContainer) return;
+
+  const visible = getVisibleCards();
+  const dots = Array.from(dotsContainer.querySelectorAll(".slider-dot"));
+
+  if (dots.length !== visible.length) {
+    buildDots();
+    return;
+  }
+
+  dots.forEach((dot, idx) => {
+    dot.classList.toggle("is-active", idx === currentIndex);
+  });
+}
+
+function setupFilterButtons() {
+  const group = document.getElementById("typeFilterGroup");
+  if (!group) return;
+
+  const pills = group.querySelectorAll(".filter-pill");
+  pills.forEach((pill) => {
+    pill.addEventListener("click", () => {
+      const type = pill.getAttribute("data-filter") || "all";
+      currentFilter = type;
+
+      pills.forEach((p) => {
+        p.classList.toggle("is-active", p === pill);
+      });
+
+      applyFilter(currentFilter);
+      buildDots();
+    });
+  });
+}
+
+function attachCardButtons() {
+  allCards.forEach((card) => {
+    const bookBtn = card.querySelector(".js-book-from-card");
+    const id = card.getAttribute("data-id");
+    const available = card.getAttribute("data-available") !== "false";
+
+    if (bookBtn && available && !bookBtn.disabled) {
+      bookBtn.addEventListener("click", () => {
+        const visible = getVisibleCards();
+        const idx = visible.indexOf(card);
+        if (idx !== -1) {
+          currentIndex = idx;
+          updateSliderClasses();
+        }
+
+        const bookingSection = document.getElementById("booking");
+        const select = document.getElementById("vehicleSelect");
+        if (select && id) {
+          select.value = id;
+          select.dataset.userTouched = "1";
+        }
+        if (bookingSection) {
+          bookingSection.scrollIntoView({ behavior: "smooth" });
+        }
+      });
+    }
+  });
+}
+
+// ========== POPULATE VEHICLE SELECT FROM CARDS ==========
+
+function fillVehicleSelect() {
+  const select = document.getElementById("vehicleSelect");
+  if (!select) return;
+  const slider = document.getElementById("vehicleSlider");
+  if (!slider) return;
+
+  const cards = slider.querySelectorAll(".vehicle-card");
+  select.innerHTML = '<option value="">Select vehicle</option>';
+
+  cards.forEach((card) => {
+    const id = card.getAttribute("data-id");
+    const type = card.getAttribute("data-type");
+    const available = card.getAttribute("data-available") !== "false";
+    const nameEl = card.querySelector(".vehicle-name");
+    if (!id || !nameEl || !available) return;
+
+    const typeLabel = type === "bike" ? "Bike" : "Scooty";
+    const option = document.createElement("option");
+    option.value = id;
+    option.textContent = `${nameEl.textContent.trim()} (${typeLabel})`;
+    select.appendChild(option);
+  });
+
+  select.addEventListener("change", () => {
+    select.dataset.userTouched = "1";
+  });
+}
+
+// ========== BOOKING FORM / WHATSAPP ==========
+
+function setupBookingForm() {
+  const form = document.getElementById("bookingForm");
+  const messageEl = document.getElementById("bookingMessage");
+  if (!form || !messageEl) return;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    messageEl.textContent = "";
+    messageEl.className = "form-message";
+
+    const formData = new FormData(form);
+
+    const pickupDate = formData.get("pickupDate");
+    const returnDate = formData.get("returnDate");
+
+    if (!pickupDate || !returnDate) {
+      messageEl.textContent = "Please select both pickup and return dates.";
+      messageEl.classList.add("error");
+      return;
+    }
+
+    const pickup = new Date(pickupDate);
+    const ret = new Date(returnDate);
+
+    if (Number.isNaN(pickup.getTime()) || Number.isNaN(ret.getTime())) {
+      messageEl.textContent = "Invalid date selection. Please choose again.";
+      messageEl.classList.add("error");
+      return;
+    }
+
+    if (ret < pickup) {
+      messageEl.textContent = "Return date cannot be earlier than pickup date.";
+      messageEl.classList.add("error");
+      return;
+    }
+
+    const vehicleId = formData.get("vehicle");
+    if (!vehicleId) {
+      messageEl.textContent = "Please select a vehicle.";
+      messageEl.classList.add("error");
+      return;
+    }
+
+    const card = allCards.find(
+      (c) => c.getAttribute("data-id") === vehicleId
+    );
+    if (!card) {
+      messageEl.textContent = "Selected vehicle not found. Please try again.";
+      messageEl.classList.add("error");
+      return;
+    }
+
+    const nameEl = card.querySelector(".vehicle-name");
+    const subtitleEl = card.querySelector(".vehicle-subtitle");
+    const descEl = card.querySelector(".vehicle-desc");
+    const priceSpan = card.querySelector(".vehicle-price span");
+
+    const vehicleName = nameEl ? nameEl.textContent.trim() : vehicleId;
+    const subtitle = subtitleEl ? subtitleEl.textContent.trim() : "";
+    const desc = descEl ? descEl.textContent.trim() : "";
+    const pricingSummary = priceSpan ? priceSpan.textContent.trim() : "";
+
+    const msgLines = [
+      "New rental request – YUNO RIDE Rentals",
+      "--------------------------------------",
+      `Name: ${formData.get("fullName") || "-"}`,
+      `Phone: ${formData.get("phone") || "-"}`,
+      "",
+      `Vehicle: ${vehicleName}`,
+      subtitle ? `Details: ${subtitle}` : "",
+      desc ? `Description: ${desc}` : "",
+      pricingSummary ? `Plan info: ${pricingSummary}` : "",
+      "",
+      `Pickup: ${pickupDate} ${formData.get("pickupTime") || ""}`,
+      `Return: ${returnDate}`,
+      "",
+      `Extra notes: ${formData.get("notes") || "-"}`,
+      "",
+      "Rider confirms a valid license and acceptance of rental terms."
+    ].filter(Boolean);
+
+    const waText = encodeURIComponent(msgLines.join("\n"));
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${waText}`;
+    window.open(waUrl, "_blank");
+
+    messageEl.textContent =
+      "WhatsApp opened with your booking details. Please review and send to confirm.";
+    messageEl.classList.add("success");
+  });
+}
+
+// ========== INIT ==========
+
+document.addEventListener("DOMContentLoaded", () => {
+  setYear();
+  setupDateLimits();
+  initFleet();
+  fillVehicleSelect();
+  setupBookingForm();
+
+  const prevBtn = document.getElementById("sliderPrev");
+  const nextBtn = document.getElementById("sliderNext");
+  if (prevBtn) prevBtn.addEventListener("click", sliderPrev);
+  if (nextBtn) nextBtn.addEventListener("click", sliderNext);
+});
+// ========== INIT ==========
