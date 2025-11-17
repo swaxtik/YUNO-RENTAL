@@ -72,11 +72,20 @@ button {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(209, 213, 219, 0.8);
-  transition: box-shadow var(--transition-med), background-color var(--transition-med);
+  transition:
+    box-shadow var(--transition-med),
+    background-color var(--transition-med),
+    transform var(--transition-med);
 }
 
 .site-header:hover {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* header style when scrolled (toggled via JS) */
+.site-header.is-scrolled {
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
 }
 
 /* HEADER BRAND + LOGO ALIGNMENT */
@@ -84,6 +93,7 @@ button {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .brand-logo {
@@ -276,6 +286,7 @@ main {
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
   border: 1px solid var(--border-soft);
+  will-change: transform;
 }
 
 .hero-banner img {
@@ -397,7 +408,10 @@ main {
   letter-spacing: 0.12em;
   color: #6b7280;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .filter-pill.is-active {
@@ -617,7 +631,11 @@ main {
   background: #ffffff;
   color: #4b5563;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .slider-btn:hover {
@@ -638,7 +656,10 @@ main {
   height: 7px;
   border-radius: 999px;
   background: #d1d5db;
-  transition: width var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+  transition:
+    width var(--transition-fast),
+    background var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .slider-dot.is-active {
@@ -715,7 +736,10 @@ main {
   color: var(--text-main);
   font-size: 0.9rem;
   font-family: inherit;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
 }
 
 .form-group textarea {
@@ -770,6 +794,18 @@ main {
   }
 }
 
+/* scroll reveal helper (used by JS) */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ========== RESPONSIVE ========== */
 
 /* tablets / small laptops */
@@ -797,6 +833,7 @@ main {
 
   .brand {
     flex: 1 1 100%;
+    justify-content: flex-start;
   }
 
   .brand-logo {
@@ -846,10 +883,25 @@ main {
   }
 
   .vehicle-slider {
-    height: 520px; /* extra space for stacked content on small screens */
+    height: 520px;
   }
 
   .form-card {
     padding: 1.5rem 1.2rem;
+  }
+}
+
+/* very small phones */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.7rem;
+  }
+
+  .nav {
+    justify-content: flex-start;
+  }
+
+  .vehicle-slider {
+    height: 560px;
   }
 }
