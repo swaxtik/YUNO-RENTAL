@@ -36,6 +36,7 @@ function setupDateLimits() {
 let allCards = [];
 let currentIndex = 0;
 let currentFilter = "all";
+let sliderKeyboardBound = false;
 
 function initFleet() {
   const slider = document.getElementById("vehicleSlider");
@@ -49,6 +50,7 @@ function initFleet() {
   updateSliderClasses();
   buildDots();
   attachCardButtons();
+  setupSliderKeyboard();
 }
 
 function getVisibleCards() {
@@ -222,6 +224,19 @@ function attachCardButtons() {
   });
 }
 
+function setupSliderKeyboard() {
+  if (sliderKeyboardBound || !allCards.length) return;
+  sliderKeyboardBound = true;
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowRight") {
+      sliderNext();
+    } else if (event.key === "ArrowLeft") {
+      sliderPrev();
+    }
+  });
+}
+
 // ========== POPULATE VEHICLE SELECT FROM CARDS ==========
 
 function fillVehicleSelect() {
@@ -345,6 +360,54 @@ function setupBookingForm() {
   });
 }
 
+// ========== HEADER SCROLL EFFECT ==========
+
+function setupHeaderScroll() {
+  const header = document.querySelector(".site-header");
+  if (!header) return;
+
+  const onScroll = () => {
+    if (window.scrollY > 12) {
+      header.classList.add("is-scrolled");
+    } else {
+      header.classList.remove("is-scrolled");
+    }
+  };
+
+  onScroll();
+  window.addEventListener("scroll", onScroll);
+}
+
+// ========== SCROLL REVEAL ==========
+
+function setupRevealOnScroll() {
+  let elements = document.querySelectorAll(".reveal");
+
+  // If no explicit .reveal elements, apply to hero + sections by default
+  if (!elements.length) {
+    document
+      .querySelectorAll(".hero, .section, .hero-banner")
+      .forEach((el) => el.classList.add("reveal"));
+    elements = document.querySelectorAll(".reveal");
+  }
+
+  if (!("IntersectionObserver" in window) || !elements.length) return;
+
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          obs.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 }
+  );
+
+  elements.forEach((el) => observer.observe(el));
+}
+
 // ========== INIT ==========
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -353,10 +416,12 @@ document.addEventListener("DOMContentLoaded", () => {
   initFleet();
   fillVehicleSelect();
   setupBookingForm();
+  setupHeaderScroll();
+  setupRevealOnScroll();
 
   const prevBtn = document.getElementById("sliderPrev");
   const nextBtn = document.getElementById("sliderNext");
   if (prevBtn) prevBtn.addEventListener("click", sliderPrev);
   if (nextBtn) nextBtn.addEventListener("click", sliderNext);
 });
-// ========== INIT ==========
+// ========== FUNCTIONS ==========
