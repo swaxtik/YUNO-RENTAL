@@ -28,7 +28,103 @@ function setupDateLimits() {
     } else {
       returnInput.min = todayStr;
     }
+    updateRentalSummary();
   });
+
+  returnInput.addEventListener("change", updateRentalSummary);
+}
+
+// Convert "HH:MM" (24h) to "hh:MM AM/PM"
+function formatTime12h(timeStr) {
+  if (!timeStr) return "";
+  const parts = timeStr.split(":");
+  if (parts.length < 2) return timeStr;
+  let hour = parseInt(parts[0], 10);
+  const minute = parts[1];
+  if (Number.isNaN(hour)) return timeStr;
+
+  const suffix = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12;
+  if (hour === 0) hour = 12;
+
+  return `${String(hour).padStart(2, "0")}:${minute} ${suffix}`;
+}
+
+// Convert "YYYY-MM-DD" to "DD Mon YYYY"
+function formatDateHuman(ymd) {
+  if (!ymd || typeof ymd !== "string") return ymd || "";
+  const [y, m, d] = ymd.split("-");
+  if (!y || !m || !d) return ymd;
+
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  if (Number.isNaN(date.getTime())) return ymd;
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+    "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[date.getMonth()];
+  const year = date.getFullYear();
+
+  return `${day} ${month} ${year}`;
+}
+
+// Calculate rental days (inclusive)
+function calculateRentalDays(pickupDate, returnDate) {
+  if (!pickupDate || !returnDate) return null;
+
+  const pickup = new Date(pickupDate);
+  const ret = new Date(returnDate);
+  if (Number.isNaN(pickup.getTime()) || Number.isNaN(ret.getTime())) return null;
+  if (ret < pickup) return null;
+
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const diff = Math.round((ret - pickup) / msPerDay) + 1; // inclusive
+  return diff;
+}
+
+// Optional on-page summary (requires <div id="rentalSummary"></div> in HTML)
+function updateRentalSummary() {
+  const pickupInput = document.getElementById("pickupDate");
+  const returnInput = document.getElementById("returnDate");
+  const pickupTimeInput = document.getElementById("pickupTime");
+  const returnTimeInput = document.getElementById("returnTime");
+  const summaryEl = document.getElementById("rentalSummary");
+
+  if (!pickupInput || !returnInput || !summaryEl) return;
+
+  const pickupDate = pickupInput.value;
+  const returnDate = returnInput.value;
+  if (!pickupDate || !returnDate) {
+    summaryEl.textContent = "";
+    summaryEl.classList.remove("has-summary");
+    return;
+  }
+
+  const days = calculateRentalDays(pickupDate, returnDate);
+  if (!days) {
+    summaryEl.textContent = "";
+    summaryEl.classList.remove("has-summary");
+    return;
+  }
+
+  const pickupTimeFormatted = pickupTimeInput
+    ? formatTime12h(pickupTimeInput.value)
+    : "";
+  const returnTimeFormatted = returnTimeInput
+    ? formatTime12h(returnTimeInput.value)
+    : "";
+
+  const pickupStr =
+    `${formatDateHuman(pickupDate)}` +
+    (pickupTimeFormatted ? ` at ${pickupTimeFormatted}` : "");
+  const returnStr =
+    `${formatDateHuman(returnDate)}` +
+    (returnTimeFormatted ? ` at ${returnTimeFormatted}` : "");
+
+  summaryEl.textContent =
+    `Rental duration: ${days} day${days > 1 ? "s" : ""} ` +
+    `(${pickupStr} → ${returnStr})`;
+  summaryEl.classList.add("has-summary");
 }
 
 // ========== FLEET SLIDER & FILTERS ==========
@@ -300,7 +396,16 @@ function setupBookingForm() {
     }
 
     if (ret < pickup) {
-      messageEl.textContent = "Return date cannot be earlier than pickup date.";
+      messageEl.textContent =
+        "Return date cannot be earlier than pickup date.";
+      messageEl.classList.add("error");
+      return;
+    }
+
+    const rentalDays = calculateRentalDays(pickupDate, returnDate);
+    if (!rentalDays) {
+      messageEl.textContent =
+        "Unable to calculate rental duration. Please check dates.";
       messageEl.classList.add("error");
       return;
     }
@@ -324,12 +429,23 @@ function setupBookingForm() {
     const nameEl = card.querySelector(".vehicle-name");
     const subtitleEl = card.querySelector(".vehicle-subtitle");
     const descEl = card.querySelector(".vehicle-desc");
-    const priceSpan = card.querySelector(".vehicle-price span");
 
     const vehicleName = nameEl ? nameEl.textContent.trim() : vehicleId;
     const subtitle = subtitleEl ? subtitleEl.textContent.trim() : "";
     const desc = descEl ? descEl.textContent.trim() : "";
-    const pricingSummary = priceSpan ? priceSpan.textContent.trim() : "";
+
+    const pickupTimeRaw = formData.get("pickupTime") || "";
+    const returnTimeRaw = formData.get("returnTime") || "";
+
+    const pickupTimeFormatted = formatTime12h(pickupTimeRaw);
+    const returnTimeFormatted = formatTime12h(returnTimeRaw);
+
+    const pickupDisplay =
+      `${formatDateHuman(pickupDate)}` +
+      (pickupTimeFormatted ? ` at ${pickupTimeFormatted}` : "");
+    const returnDisplay =
+      `${formatDateHuman(returnDate)}` +
+      (returnTimeFormatted ? ` at ${returnTimeFormatted}` : "");
 
     const msgLines = [
       "New rental request – YUNO RIDE Rentals",
@@ -340,10 +456,10 @@ function setupBookingForm() {
       `Vehicle: ${vehicleName}`,
       subtitle ? `Details: ${subtitle}` : "",
       desc ? `Description: ${desc}` : "",
-      pricingSummary ? `Plan info: ${pricingSummary}` : "",
       "",
-      `Pickup: ${pickupDate} ${formData.get("pickupTime") || ""}`,
-      `Return: ${returnDate}`,
+      `Pickup: ${pickupDisplay}`,
+      `Return (estimated): ${returnDisplay}`,
+      `Rental duration: ${rentalDays} day${rentalDays > 1 ? "s" : ""}`,
       "",
       `Extra notes: ${formData.get("notes") || "-"}`,
       "",
@@ -419,9 +535,18 @@ document.addEventListener("DOMContentLoaded", () => {
   setupHeaderScroll();
   setupRevealOnScroll();
 
+  // Initial summary update if dates prefilled
+  updateRentalSummary();
+
   const prevBtn = document.getElementById("sliderPrev");
   const nextBtn = document.getElementById("sliderNext");
   if (prevBtn) prevBtn.addEventListener("click", sliderPrev);
   if (nextBtn) nextBtn.addEventListener("click", sliderNext);
+
+  const pickupTimeInput = document.getElementById("pickupTime");
+  const returnTimeInput = document.getElementById("returnTime");
+  if (pickupTimeInput) pickupTimeInput.addEventListener("change", updateRentalSummary);
+  if (returnTimeInput) returnTimeInput.addEventListener("change", updateRentalSummary);
 });
+
 // ========== FUNCTIONS ==========
