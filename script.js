@@ -68,6 +68,16 @@ function formatDateHuman(ymd) {
   return `${day} ${month} ${year}`;
 }
 
+// Format INR nicely
+function formatINR(amount) {
+  if (amount == null || Number.isNaN(Number(amount))) return "";
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0
+  }).format(Number(amount));
+}
+
 // Calculate rental days (inclusive)
 function calculateRentalDays(pickupDate, returnDate) {
   if (!pickupDate || !returnDate) return null;
@@ -434,6 +444,34 @@ function setupBookingForm() {
     const subtitle = subtitleEl ? subtitleEl.textContent.trim() : "";
     const desc = descEl ? descEl.textContent.trim() : "";
 
+    // PRICE HANDLING: from data-day and data-week on card
+    const dailyRateAttr = card.getAttribute("data-day");
+    const weeklyRateAttr = card.getAttribute("data-week");
+
+    const dailyRate =
+      dailyRateAttr != null && dailyRateAttr !== ""
+        ? Number(dailyRateAttr)
+        : null;
+    const weeklyRate =
+      weeklyRateAttr != null && weeklyRateAttr !== ""
+        ? Number(weeklyRateAttr)
+        : null;
+
+    let estimatedTotal = null;
+    if (
+      rentalDays &&
+      dailyRate != null &&
+      !Number.isNaN(dailyRate)
+    ) {
+      if (weeklyRate != null && !Number.isNaN(weeklyRate) && rentalDays >= 7) {
+        const fullWeeks = Math.floor(rentalDays / 7);
+        const remainingDays = rentalDays % 7;
+        estimatedTotal = fullWeeks * weeklyRate + remainingDays * dailyRate;
+      } else {
+        estimatedTotal = rentalDays * dailyRate;
+      }
+    }
+
     const pickupTimeRaw = formData.get("pickupTime") || "";
     const returnTimeRaw = formData.get("returnTime") || "";
 
@@ -447,6 +485,22 @@ function setupBookingForm() {
       `${formatDateHuman(returnDate)}` +
       (returnTimeFormatted ? ` at ${returnTimeFormatted}` : "");
 
+    const rateParts = [];
+    if (dailyRate != null && !Number.isNaN(dailyRate)) {
+      rateParts.push(`${formatINR(dailyRate)} per day`);
+    }
+    if (weeklyRate != null && !Number.isNaN(weeklyRate)) {
+      rateParts.push(`${formatINR(weeklyRate)} per week`);
+    }
+    const rateLine = rateParts.length
+      ? `Rate: ${rateParts.join(" • ")}`
+      : "";
+
+    const totalLine =
+      estimatedTotal != null
+        ? `Estimated rental amount: ${formatINR(estimatedTotal)} for ${rentalDays} day${rentalDays > 1 ? "s" : ""}`
+        : "";
+
     const msgLines = [
       "New rental request – YUNO RIDE Rentals",
       "--------------------------------------",
@@ -456,6 +510,8 @@ function setupBookingForm() {
       `Vehicle: ${vehicleName}`,
       subtitle ? `Details: ${subtitle}` : "",
       desc ? `Description: ${desc}` : "",
+      rateLine,
+      totalLine,
       "",
       `Pickup: ${pickupDisplay}`,
       `Return (estimated): ${returnDisplay}`,
