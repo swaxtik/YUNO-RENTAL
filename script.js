@@ -8,12 +8,12 @@ function setYear() {
   if (span) span.textContent = new Date().getFullYear();
 }
 
-// Auto-limit dates + auto-set return time = +24 hrs
+// Auto-limit dates + auto-set return date/time = +24 hrs
 function setupDateLimits() {
   const pickupInput = document.getElementById("pickupDate");
   const returnInput = document.getElementById("returnDate");
   const pickupTimeInput = document.getElementById("pickupTime");
-  const returnTimeInput = document.getElementById("returnTime");
+  const returnTimeInput = document.getElementById("returnTime"); // optional
 
   if (!pickupInput || !returnInput) return;
 
@@ -64,6 +64,7 @@ function setupDateLimits() {
 function formatTime12h(timeStr) {
   if (!timeStr) return "";
   let [hour, minute] = timeStr.split(":").map(Number);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return "";
   const suffix = hour >= 12 ? "PM" : "AM";
   hour = hour % 12 || 12;
   return `${hour}:${minute.toString().padStart(2, "0")} ${suffix}`;
@@ -74,12 +75,16 @@ function formatDateHuman(ymd) {
   if (!ymd) return "";
   const [y, m, d] = ymd.split("-");
   const date = new Date(Number(y), Number(m) - 1, Number(d));
-  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const monthNames = [
+    "Jan","Feb","Mar","Apr","May","Jun",
+    "Jul","Aug","Sep","Oct","Nov","Dec"
+  ];
+  if (Number.isNaN(date.getTime())) return ymd;
   return `${String(d).padStart(2, "0")} ${monthNames[date.getMonth()]} ${y}`;
 }
 
 function formatINR(amount) {
-  if (!amount) return "";
+  if (!amount && amount !== 0) return "";
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -98,13 +103,13 @@ function calculateRentalDays(pickupDate, returnDate) {
   return diff;
 }
 
-// On-page rental summary
+// On-page rental summary (optional)
 function updateRentalSummary() {
   const pickupInput = document.getElementById("pickupDate");
   const returnInput = document.getElementById("returnDate");
   const pickupTimeInput = document.getElementById("pickupTime");
-  const returnTimeInput = document.getElementById("returnTime");
-  const summaryEl = document.getElementById("rentalSummary");
+  const returnTimeInput = document.getElementById("returnTime"); // may not exist
+  const summaryEl = document.getElementById("rentalSummary"); // optional
 
   if (!pickupInput || !returnInput || !summaryEl) return;
 
@@ -116,10 +121,19 @@ function updateRentalSummary() {
   }
 
   const days = calculateRentalDays(pickup, ret);
-  if (!days) return;
+  if (!days) {
+    summaryEl.textContent = "";
+    return;
+  }
 
-  const pickupStr = `${formatDateHuman(pickup)} at ${formatTime12h(pickupTimeInput.value)}`;
-  const returnStr = `${formatDateHuman(ret)} at ${formatTime12h(returnTimeInput.value)}`;
+  const pickupTimeRaw = pickupTimeInput?.value || "";
+  const returnTimeRaw = returnTimeInput?.value || "";
+
+  const pickupTimeText = pickupTimeRaw ? ` at ${formatTime12h(pickupTimeRaw)}` : "";
+  const returnTimeText = returnTimeRaw ? ` at ${formatTime12h(returnTimeRaw)}` : "";
+
+  const pickupStr = `${formatDateHuman(pickup)}${pickupTimeText}`;
+  const returnStr = `${formatDateHuman(ret)}${returnTimeText}`;
 
   summaryEl.textContent =
     `Rental: ${days} day${days > 1 ? "s" : ""} (${pickupStr} → ${returnStr}) • Late return may incur extra charges.`;
@@ -130,11 +144,12 @@ let allCards = [];
 let currentIndex = 0;
 let currentFilter = "all";
 
-// (Slider functions unchanged — keeping your logic intact)
 function initFleet() {
   const slider = document.getElementById("vehicleSlider");
   if (!slider) return;
   allCards = Array.from(slider.querySelectorAll(".vehicle-card"));
+  if (!allCards.length) return;
+
   setupFilterButtons();
   applyFilter(currentFilter);
   updateSliderClasses();
@@ -153,7 +168,8 @@ function applyFilter(type) {
 
   allCards.forEach(card => {
     const cardType = card.getAttribute("data-type");
-    card.classList.toggle("is-filter-hidden", !(type === "all" || cardType === type));
+    const shouldShow = type === "all" || cardType === type;
+    card.classList.toggle("is-filter-hidden", !shouldShow);
   });
 
   const visible = getVisibleCards();
@@ -170,7 +186,9 @@ function updateSliderClasses() {
 
   currentIndex = (currentIndex + visible.length) % visible.length;
 
-  allCards.forEach(c => c.classList.remove("is-active", "is-left", "is-right", "is-hidden"));
+  allCards.forEach(c =>
+    c.classList.remove("is-active", "is-left", "is-right", "is-hidden")
+  );
 
   const active = visible[currentIndex];
   active.classList.add("is-active");
@@ -178,18 +196,25 @@ function updateSliderClasses() {
   const left = visible[(currentIndex - 1 + visible.length) % visible.length];
   const right = visible[(currentIndex + 1) % visible.length];
 
-  left?.classList.add("is-left");
-  right?.classList.add("is-right");
+  if (left) left.classList.add("is-left");
+  if (right) right.classList.add("is-right");
 
   visible.forEach((c, i) => {
-    if (i !== currentIndex && c !== left && c !== right) c.classList.add("is-hidden");
+    if (i !== currentIndex && c !== left && c !== right) {
+      c.classList.add("is-hidden");
+    }
   });
-
-  updateDots();
 }
 
-const sliderNext = () => { currentIndex++; updateSliderClasses(); };
-const sliderPrev = () => { currentIndex--; updateSliderClasses(); };
+const sliderNext = () => {
+  currentIndex++;
+  updateSliderClasses();
+};
+
+const sliderPrev = () => {
+  currentIndex--;
+  updateSliderClasses();
+};
 
 function buildDots() {
   const dots = document.getElementById("sliderDots");
@@ -199,7 +224,11 @@ function buildDots() {
   getVisibleCards().forEach((_, i) => {
     const dot = document.createElement("span");
     dot.className = "slider-dot" + (i === currentIndex ? " is-active" : "");
-    dot.onclick = () => { currentIndex = i; updateSliderClasses(); };
+    dot.onclick = () => {
+      currentIndex = i;
+      updateSliderClasses();
+      updateDots();
+    };
     dots.appendChild(dot);
   });
 }
@@ -211,7 +240,9 @@ function updateDots() {
   const all = dots.querySelectorAll(".slider-dot");
   if (all.length !== visible.length) return buildDots();
 
-  all.forEach((d, i) => d.classList.toggle("is-active", i === currentIndex));
+  all.forEach((d, i) => {
+    d.classList.toggle("is-active", i === currentIndex);
+  });
 }
 
 function setupFilterButtons() {
@@ -220,7 +251,16 @@ function setupFilterButtons() {
     p.onclick = () => {
       pills.forEach(x => x.classList.remove("is-active"));
       p.classList.add("is-active");
-      applyFilter(p.dataset.filter);
+      applyFilter(p.dataset.filter || "all");
+
+      // Sync header filter buttons (if present)
+      const headerBtns = document.querySelectorAll(".nav-filter-btn");
+      headerBtns.forEach(btn => {
+        btn.classList.toggle(
+          "is-active",
+          (btn.dataset.filter || "all") === (p.dataset.filter || "all")
+        );
+      });
     };
   });
 }
@@ -230,10 +270,19 @@ function attachCardButtons() {
     const btn = card.querySelector(".js-book-from-card");
     if (!btn) return;
     btn.onclick = () => {
-      currentIndex = getVisibleCards().indexOf(card);
+      const visible = getVisibleCards();
+      currentIndex = visible.indexOf(card);
+      if (currentIndex === -1) currentIndex = 0;
       updateSliderClasses();
       document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" });
-      document.getElementById("vehicleSelect").value = card.dataset.id;
+
+      const select = document.getElementById("vehicleSelect");
+      if (select && card.dataset.id) {
+        select.value = card.dataset.id;
+      }
+
+      const nameInput = document.getElementById("fullName");
+      if (nameInput) nameInput.focus();
     };
   });
 }
@@ -251,6 +300,8 @@ function fillVehicleSelect() {
   if (!select) return;
 
   const slider = document.getElementById("vehicleSlider");
+  if (!slider) return;
+
   const cards = slider.querySelectorAll(".vehicle-card");
   select.innerHTML = '<option value="">Select vehicle</option>';
 
@@ -260,6 +311,7 @@ function fillVehicleSelect() {
     const id = card.getAttribute("data-id");
     const name = card.querySelector(".vehicle-name")?.textContent.trim();
     const typeLabel = card.getAttribute("data-type") === "bike" ? "Bike" : "Scooty";
+    if (!id || !name) return;
 
     const opt = document.createElement("option");
     opt.value = id;
@@ -273,6 +325,7 @@ function fillVehicleSelect() {
 function setupBookingForm() {
   const form = document.getElementById("bookingForm");
   const messageEl = document.getElementById("bookingMessage");
+  if (!form || !messageEl) return;
 
   form.addEventListener("submit", e => {
     e.preventDefault();
@@ -282,6 +335,21 @@ function setupBookingForm() {
     const fd = new FormData(form);
     const pickupDate = fd.get("pickupDate");
     const returnDate = fd.get("returnDate");
+    const fullName = (fd.get("fullName") || "").toString().trim();
+    const phone = (fd.get("phone") || "").toString().trim();
+    const vehicleId = fd.get("vehicle");
+
+    if (!fullName) {
+      messageEl.textContent = "Please enter your full name.";
+      messageEl.classList.add("error");
+      return;
+    }
+
+    if (!phone) {
+      messageEl.textContent = "Please enter your phone number.";
+      messageEl.classList.add("error");
+      return;
+    }
 
     if (!pickupDate || !returnDate) {
       messageEl.textContent = "Please select both pickup and return dates.";
@@ -296,7 +364,12 @@ function setupBookingForm() {
       return;
     }
 
-    const vehicleId = fd.get("vehicle");
+    if (!vehicleId) {
+      messageEl.textContent = "Please select a vehicle.";
+      messageEl.classList.add("error");
+      return;
+    }
+
     const card = allCards.find(c => c.dataset.id === vehicleId);
     if (!card) {
       messageEl.textContent = "Vehicle not found.";
@@ -304,58 +377,65 @@ function setupBookingForm() {
       return;
     }
 
-    const vehicleName = card.querySelector(".vehicle-name").textContent.trim();
+    const vehicleName = card.querySelector(".vehicle-name")?.textContent.trim() || "";
     const subtitle = card.querySelector(".vehicle-subtitle")?.textContent || "";
     const desc = card.querySelector(".vehicle-desc")?.textContent || "";
 
     const dailyRate = Number(card.getAttribute("data-day"));
     const weeklyRate = Number(card.getAttribute("data-week"));
 
-    let estimatedTotal = rentalDays * dailyRate;
+    let estimatedTotal = rentalDays * (dailyRate || 0);
     if (rentalDays >= 7 && weeklyRate) {
       const weeks = Math.floor(rentalDays / 7);
       const remaining = rentalDays % 7;
-      estimatedTotal = weeks * weeklyRate + remaining * dailyRate;
+      estimatedTotal = weeks * weeklyRate + remaining * (dailyRate || 0);
     }
 
-    const pickupTime = formatTime12h(fd.get("pickupTime"));
-    const returnTime = formatTime12h(fd.get("returnTime"));
+    const pickupTimeRaw = fd.get("pickupTime") || "";
+    const returnTimeRaw = fd.get("returnTime") || "";
 
-    const pickupDisplay = `${formatDateHuman(pickupDate)} at ${pickupTime}`;
-    const returnDisplay = `${formatDateHuman(returnDate)} at ${returnTime}`;
+    const pickupDisplay = pickupTimeRaw
+      ? `${formatDateHuman(pickupDate)} at ${formatTime12h(pickupTimeRaw)}`
+      : formatDateHuman(pickupDate);
 
-    const rateLine = `Rate: ${formatINR(dailyRate)} per day ${weeklyRate ? "• " + formatINR(weeklyRate) + " per week" : ""}`;
-    const totalLine = `Estimated total: ${formatINR(estimatedTotal)} for ${rentalDays} day${rentalDays > 1 ? "s" : ""}`;
+    const returnDisplay = returnTimeRaw
+      ? `${formatDateHuman(returnDate)} at ${formatTime12h(returnTimeRaw)}`
+      : formatDateHuman(returnDate);
 
-    // 💎 CLEAN & NEAT WHATSAPP MESSAGE
+    const rateLine =
+      `Rate: ${formatINR(dailyRate)} per day` +
+      (weeklyRate ? ` • ${formatINR(weeklyRate)} per week` : "");
+
+    const totalLine =
+      `Estimated total: ${formatINR(estimatedTotal)} for ` +
+      `${rentalDays} day${rentalDays > 1 ? "s" : ""}`;
+
     const msgLines = [
-      "YUNO RIDE – NEW BOOKING REQUEST",
-      "================================",
+      "YUNO RIDE – Booking Request",
       "",
-      "1. CUSTOMER DETAILS",
-      `• Name: ${fd.get("fullName")}`,
-      `• Phone: ${fd.get("phone")}`,
+      "Customer",
+      `• Name: ${fullName}`,
+      `• Phone: ${phone}`,
       "",
-      "2. VEHICLE DETAILS",
-      `• Vehicle: ${vehicleName}`,
-      subtitle ? `• Variant: ${subtitle}` : "",
-      desc ? `• Description: ${desc}` : "",
+      "Vehicle",
+      `• Model: ${vehicleName}`,
+      `• Subtitle: ${subtitle}`,
+      `• Description: ${desc}`,
+      `• ID: ${vehicleId}`,
+      `• Type: ${card.getAttribute("data-type") === "bike" ? "Bike" : "Scooty"}`,
       `• ${rateLine}`,
       "",
-      "3. RENTAL SCHEDULE",
+      "Rental",
       `• Pickup: ${pickupDisplay}`,
       `• Return: ${returnDisplay}`,
       `• Duration: ${rentalDays} day${rentalDays > 1 ? "s" : ""}`,
-      "",
-      "4. RENTAL ESTIMATE",
       `• ${totalLine}`,
       "",
-      "5. EXTRA NOTES",
+      "Notes",
       `• ${fd.get("notes") || "-"}`,
       "",
-      "6. IMPORTANT",
-      "• Late return beyond the booked return time may incur extra charges.",
-      "• Rider confirms a valid driving license and accepts rental terms."
+      "Important",
+      "• Customer confirms valid driving licence and agrees to rental terms."
     ].filter(Boolean);
 
     const waText = encodeURIComponent(msgLines.join("\n"));
@@ -380,12 +460,85 @@ function setupHeaderScroll() {
   window.addEventListener("scroll", onScroll);
 }
 
+// ========== NAV TOGGLE (MOBILE HEADER) ==========
+
+function setupNavToggle() {
+  const header = document.querySelector(".site-header");
+  if (!header) return;
+
+  const nav = header.querySelector(".nav");
+  const toggle = header.querySelector(".nav-toggle");
+  const links = nav?.querySelectorAll(".nav-links a");
+
+  if (!nav || !toggle) return;
+
+  // open/close on hamburger tap
+  toggle.addEventListener("click", () => {
+    const isOpen = nav.classList.toggle("is-open");
+    toggle.classList.toggle("is-open", isOpen);
+  });
+
+  // close after clicking any nav link (for mobile)
+  links?.forEach(link => {
+    link.addEventListener("click", () => {
+      nav.classList.remove("is-open");
+      toggle.classList.remove("is-open");
+    });
+  });
+
+  // close when tapping outside
+  document.addEventListener("click", e => {
+    if (!nav.classList.contains("is-open")) return;
+    if (header.contains(e.target)) return;
+    nav.classList.remove("is-open");
+    toggle.classList.remove("is-open");
+  });
+}
+
+// ========== NAV FILTER SHORTCUTS (MOBILE "ALL / BIKE / SCOOTY") ==========
+
+function setupNavFilterShortcuts() {
+  const buttons = document.querySelectorAll(".nav-filter-btn");
+  if (!buttons.length) return;
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const filterValue = btn.dataset.filter || "all";
+
+      // mark this header button active
+      buttons.forEach(b => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+
+      // sync with main fleet filter pills
+      const pills = document.querySelectorAll(".filter-pill");
+      pills.forEach(pill => {
+        const pillFilter = pill.dataset.filter || "all";
+        pill.classList.toggle("is-active", pillFilter === filterValue);
+      });
+
+      // apply filter + scroll to fleet
+      applyFilter(filterValue);
+      document.getElementById("fleet")?.scrollIntoView({ behavior: "smooth" });
+
+      // close nav if on mobile and open
+      const header = document.querySelector(".site-header");
+      const nav = header?.querySelector(".nav");
+      const toggle = header?.querySelector(".nav-toggle");
+      if (nav?.classList.contains("is-open")) {
+        nav.classList.remove("is-open");
+        toggle?.classList.remove("is-open");
+      }
+    });
+  });
+}
+
 // ========== SCROLL REVEAL ==========
 
 function setupRevealOnScroll() {
   let elements = document.querySelectorAll(".reveal");
   if (!elements.length) {
-    document.querySelectorAll(".hero, .section, .hero-banner")
+    document
+      .querySelectorAll(".hero, .section, .hero-banner")
       .forEach(el => el.classList.add("reveal"));
     elements = document.querySelectorAll(".reveal");
   }
@@ -412,6 +565,8 @@ document.addEventListener("DOMContentLoaded", () => {
   fillVehicleSelect();
   setupBookingForm();
   setupHeaderScroll();
+  setupNavToggle();
+  setupNavFilterShortcuts();
   setupRevealOnScroll();
   updateRentalSummary();
 
