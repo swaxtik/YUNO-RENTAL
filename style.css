@@ -1574,6 +1574,51 @@ main {
   text-align: center;
 }
 
+/* ========== FOOTER SOCIAL MEDIA ========== */
+
+.footer-social {
+  min-width: 180px;
+}
+
+.footer-social h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.86rem;
+  color: #111827;
+}
+
+.social-icons {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.social-icons a {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e4ebf5;
+  color: #374151;
+  font-size: 0.9rem;
+  text-decoration: none;
+  box-shadow:
+    -3px -3px 6px rgba(255, 255, 255, 0.9),
+     3px  3px 6px rgba(163, 177, 198, 0.6);
+  transition:
+    transform var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.social-icons a:hover {
+  color: var(--accent-blue);
+  transform: translateY(-2px);
+  box-shadow:
+    -4px -4px 8px rgba(255, 255, 255, 0.95),
+     4px  4px 8px rgba(163, 177, 198, 0.7);
+}
+
 /* ========== ANIMATIONS ========== */
 
 @keyframes fadeUp {
@@ -1688,7 +1733,6 @@ main {
     letter-spacing: 0.16em;
   }
 
-  /* MOBILE NAV BEHAVIOUR */
   .nav-toggle {
     display: inline-flex;
     align-items: center;
@@ -1826,6 +1870,10 @@ main {
   .footer-links {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .footer-social {
+    margin-top: 0.5rem;
+  }
 }
 
 /* very small phones */
@@ -1844,3 +1892,4 @@ main {
 }
 
 /* ========== END UPDATED STYLE.CSS ========== */
+
